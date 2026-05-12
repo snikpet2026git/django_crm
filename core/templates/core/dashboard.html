@@ -1,0 +1,153 @@
+{% extends "core/base.html" %}
+
+{% block content %}
+<!-- Панель статистики -->
+<div class="dashboard">
+    <div class="card">
+        <span class="icon">🖨️</span>
+        <h3>Всего принтеров</h3>
+        <div class="number">{{ printers_count }}</div>
+    </div>
+    <div class="card">
+        <span class="icon">📦</span>
+        <h3>Картриджей</h3>
+        <div class="number">{{ cartridges_count }}</div>
+    </div>
+    <div class="card">
+        <span class="icon">👥</span>
+        <h3>Сотрудников</h3>
+        <div class="number">{{ employees_count }}</div>
+    </div>
+    <div class="card">
+        <span class="icon">🏢</span>
+        <h3>Помещений</h3>
+        <div class="number">{{ rooms_count }}</div>
+    </div>
+</div>
+
+<!-- Принтеры -->
+<div class="section">
+    <h2>📋 Парк принтеров</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Инв. номер</th>
+                <th>Модель</th>
+                <th>Состояние</th>
+                <th>Помещение</th>
+                <th>Ответственный</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for printer in printers %}
+            <tr>
+                <td><strong>{{ printer.inventory_number }}</strong></td>
+                <td>{{ printer.printer_model.manufacturer }} {{ printer.printer_model.model_name }}</td>
+                <td><span class="status status-{{ printer.status }}">{{ printer.get_status_display }}</span></td>
+                <td>{{ printer.current_room|default:"—" }}</td>
+                <td>{{ printer.responsible_employee|default:"—" }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5">Нет данных</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Картриджи -->
+<div class="section">
+    <h2>📦 Картриджи</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Инв. номер</th>
+                <th>Модель</th>
+                <th>Цвет</th>
+                <th>Состояние</th>
+                <th>Заправок</th>
+                <th>Расположение</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for cartridge in cartridges %}
+            <tr>
+                <td><strong>{{ cartridge.inventory_number }}</strong></td>
+                <td>{{ cartridge.model_name }}</td>
+                <td>{{ cartridge.get_color_display }}</td>
+                <td><span class="status status-{{ cartridge.status }}">{{ cartridge.get_status_display }}</span></td>
+                <td>{{ cartridge.refill_count }}</td>
+                <td>
+                    {% if cartridge.current_printer %}
+                        🖨️ {{ cartridge.current_printer.inventory_number }}
+                    {% elif cartridge.storage_room %}
+                        📦 {{ cartridge.storage_room }}
+                    {% else %}
+                        —
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6">Нет данных</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Ответственные лица -->
+<div class="section">
+    <h2>👥 Материально ответственные лица</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>ФИО</th>
+                <th>Должность</th>
+                <th>Телефон</th>
+                <th>Email</th>
+                <th>Принтеров на ответственности</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for employee in responsible_employees %}
+            <tr>
+                <td><strong>{{ employee.full_name }}</strong></td>
+                <td>{{ employee.position|default:"—" }}</td>
+                <td>{{ employee.phone|default:"—" }}</td>
+                <td>{{ employee.email|default:"—" }}</td>
+                <td>{{ employee.responsible_printers.count }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5">Нет данных</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Складские помещения -->
+<div class="section">
+    <h2>🏢 Помещения и склады</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Название</th>
+                <th>Здание</th>
+                <th>Этаж</th>
+                <th>Принтеров</th>
+                <th>Картриджей на складе</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for room in rooms %}
+            <tr>
+                <td><strong>{{ room.name }}</strong></td>
+                <td>{{ room.building|default:"—" }}</td>
+                <td>{{ room.floor|default:"—" }}</td>
+                <td>{{ room.printers_current.count }}</td>
+                <td>{{ room.stored_cartridges.count }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5">Нет данных</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
